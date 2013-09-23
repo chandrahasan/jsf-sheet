@@ -1,5 +1,3 @@
-= Introduction =
-
 At this time, we do not have a home for our maven project. So for now, you can get started by downloading the source and building the project.
 
 
