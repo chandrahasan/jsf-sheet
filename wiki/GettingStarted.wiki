@@ -1,0 +1,58 @@
+#Getting Started
+
+= Introduction =
+
+At this time, we do not have a home for our maven project. So for now, you can get started by downloading the source and building the project.
+
+
+= Building from Source =
+
+{{{
+svn checkout https://jsf-sheet.googlecode.com/svn/trunk/ jsf-sheet 
+cd jsf-sheet
+mvn clean install
+}}}
+
+Once the package is installed, you can add the dependency to your maven pom.xml:
+
+{{{
+<dependency>  
+    <groupId>com.lcg</groupId>  
+    <artifactId>jsf-sheet</artifactId>  
+    <version>1.0.0-SNAPSHOT</version>  
+</dependency>
+}}}
+
+== Using the Component ==
+To use the component, add the following namespace to your .xhtml page:
+
+{{{
+xmlns:lcg="http://www.lassitercg.com/jsf"
+}}}
+
+The component can then be used in your page like so:
+
+{{{
+<lcg:sheet id="myid" value="#{employees}" var="row" height="400" fixedCols="1" showRowHeaders="false" sortBy="#{row.employeeId}" sortOrder="ascending" >
+   
+  <p:ajax update=":#{p:component('growl')} @this :#{p:component('messages')}" listener="#{batchController.cellEditEvent}" />
+
+  <f:facet name="header">
+	<h:outputText value="Employees" />
+  </f:facet>	            	
+					
+  <f:facet name="footer">
+        <h:outputText value="#{employees.size()} Records" />						
+  </f:facet>
+					
+  <lcg:column headerText="Employee Id" readonly="true" value="#{row.employeeId}" colWidth="100" filterBy="#{row.employeeId}" />
+
+  <lcg:column headerText="First Name" value="#{row.firstName}" styleClass="#{row.age lt 30 ? 'young' : ''}" colWidth="200" filterBy="#{row.firstName}" />
+
+  <lcg:column headerText="Last Name" value="#{row.lastName}" colWidth="200" filterBy="#{row.lastName}" />
+
+  <lcg:column headerText="Age" value="#{row.age}" colWidth="100" />
+</lcg:sheet>
+}}}
+
+More examples to come ...
