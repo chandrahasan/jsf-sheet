@@ -19,7 +19,7 @@ Once the package is installed, you can add the dependency to your maven pom.xml:
 </dependency>
 }}}
 
-== Using the Component ==
+= Using the Component =
 To use the component, add the following namespace to your .xhtml page:
 
 {{{
