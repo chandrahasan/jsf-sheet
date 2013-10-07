@@ -51,4 +51,6 @@ The component can then be used in your page like so:
 </lcg:sheet>
 }}}
 
-More examples to come ...
+= Demo =
+A showcase of the component can be found here:
+[http://server.brainhemorage.com/jsfdemo/demo.jsf]
