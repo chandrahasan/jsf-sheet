@@ -152,8 +152,9 @@ public class SheetRenderer extends Renderer {
 	 *            the attribute name
 	 * @param value
 	 *            the value
+	 * @throws IOException
 	 */
-	protected void encodeOptionalAttr(WidgetBuilder wb, String attrName, String value) {
+	protected void encodeOptionalAttr(WidgetBuilder wb, String attrName, String value) throws IOException {
 		if (value != null)
 			wb.attr(attrName, value);
 	}
@@ -167,8 +168,9 @@ public class SheetRenderer extends Renderer {
 	 *            the attribute name
 	 * @param value
 	 *            the value
+	 * @throws IOException
 	 */
-	protected void encodeOptionalNativeAttr(WidgetBuilder wb, String attrName, Object value) {
+	protected void encodeOptionalNativeAttr(WidgetBuilder wb, String attrName, Object value) throws IOException {
 		if (value != null)
 			wb.nativeAttr(attrName, value.toString());
 	}
@@ -186,8 +188,8 @@ public class SheetRenderer extends Renderer {
 		String widgetVar = sheet.resolveWidgetVar();
 		String clientId = sheet.getClientId(context);
 
-		WidgetBuilder wb = new WidgetBuilder();
-		wb.widget("Sheet", widgetVar, clientId, true);
+		WidgetBuilder wb = new WidgetBuilder(context);
+		wb.initWithDomReady("Sheet", widgetVar, clientId);
 
 		// errors
 		encodeBadData(context, sheet, wb);
@@ -222,13 +224,7 @@ public class SheetRenderer extends Renderer {
 
 		encodeColHeaders(context, sheet, wb);
 		encodeColOptions(context, sheet, wb);
-
-		/*
-		 * Start java script
-		 */
-		this.startScript(responseWriter, clientId);
-		responseWriter.write(wb.build());
-		this.endScript(responseWriter);
+		wb.finish();
 	}
 
 	/**
@@ -577,7 +573,7 @@ public class SheetRenderer extends Renderer {
 	 * @param jsFilterVar
 	 * @throws IOException
 	 */
-	protected void encodeSortVar(FacesContext context, Sheet sheet, WidgetBuilder wb) {
+	protected void encodeSortVar(FacesContext context, Sheet sheet, WidgetBuilder wb) throws IOException {
 		VarBuilder vb = new VarBuilder(null, false);
 
 		for (Column column : sheet.getColumns()) {
@@ -765,29 +761,6 @@ public class SheetRenderer extends Renderer {
 		} catch (JSONException e) {
 			LOG.error("Failed parsing Ajax JSON message for cell change event: {}", e.getMessage(), e);
 		}
-	}
-
-	/**
-	 * Start script element.
-	 * <p>
-	 * @param writer
-	 * @param clientId
-	 * @throws IOException
-	 */
-	protected void startScript(ResponseWriter writer, String clientId) throws IOException {
-		writer.startElement("script", null);
-		writer.writeAttribute("id", clientId + "_s", null);
-		writer.writeAttribute("type", "text/javascript", null);
-	}
-
-	/**
-	 * Stop script element.
-	 * <p>
-	 * @param writer
-	 * @throws IOException
-	 */
-	protected void endScript(ResponseWriter writer) throws IOException {
-		writer.endElement("script");
 	}
 
 	/**
