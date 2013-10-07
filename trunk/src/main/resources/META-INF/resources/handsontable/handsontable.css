@@ -617,3 +617,8 @@ span.handson-filter {
 .ui-widget-content .handsontable th:not(:first-child) {
     border-left: none !important;
 }
+
+/* PF theme select appears smaller in 4.0 */
+.handsontable select {
+    padding: 2px;
+}
