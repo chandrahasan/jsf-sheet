@@ -8,7 +8,7 @@
 		<description><![CDATA[Data sheet providing Excel like editing, frozen columns and rows, copy/paste, sorting, etc.]]></description>
 		<tag-name>sheet</tag-name>
 		<component>
-			<component-type>com.lcg.faces.components.sheet</component-type>
+			<component-type>com.lassitercg.faces.components.sheet</component-type>
 		</component>
 		<attribute>
 			<description><![CDATA[An el expression referring to a server side UIComponent instance in a backing bean.]]></description>
@@ -184,7 +184,7 @@
 		<description><![CDATA[Data sheet column used to define the available columns in a Sheet component.]]></description>
 		<tag-name>column</tag-name>
 		<component>
-			<component-type>com.lcg.faces.components.column</component-type>
+			<component-type>com.lassitercg.faces.components.column</component-type>
 		</component>
 		<attribute>
 			<description><![CDATA[An el expression referring to a server side UIComponent instance in a backing bean.]]></description>

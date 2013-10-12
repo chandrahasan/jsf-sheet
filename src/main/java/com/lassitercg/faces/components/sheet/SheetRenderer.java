@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.lcg.faces.components.sheet;
+package com.lassitercg.faces.components.sheet;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -46,7 +46,7 @@ import org.primefaces.util.WidgetBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.lcg.faces.components.util.VarBuilder;
+import com.lassitercg.faces.components.util.VarBuilder;
 
 /**
  * The Sheet renderer.

@@ -1,4 +1,4 @@
-package com.lcg.faces.components.util;
+package com.lassitercg.faces.components.util;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 

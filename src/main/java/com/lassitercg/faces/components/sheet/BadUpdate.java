@@ -1,4 +1,4 @@
-package com.lcg.faces.components.sheet;
+package com.lassitercg.faces.components.sheet;
 
 import java.io.Serializable;
 
