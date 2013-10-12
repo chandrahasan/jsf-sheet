@@ -13,9 +13,9 @@ Once the package is installed, you can add the dependency to your maven pom.xml:
 
 {{{
 <dependency>  
-    <groupId>com.lcg</groupId>  
+    <groupId>com.lassitercg</groupId>  
     <artifactId>jsf-sheet</artifactId>  
-    <version>1.0.0-SNAPSHOT</version>  
+    <version>1.0-SNAPSHOT</version>  
 </dependency>
 }}}
 
