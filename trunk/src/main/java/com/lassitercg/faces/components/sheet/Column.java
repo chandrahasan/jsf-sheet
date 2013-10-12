@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.lcg.faces.components.sheet;
+package com.lassitercg.faces.components.sheet;
 
 import java.util.Collection;
 
@@ -44,8 +44,8 @@ import javax.faces.validator.ValidatorException;
 public class Column extends UIInput implements ClientBehaviorHolder {
 
 	private static final String MESSAGE_REQUIRED = "A valid value for this column is required.";
-	public static final String FAMILY = "com.lcg.faces.components";
-	public static final String COMPONENTTYPE = "com.lcg.faces.components.column";
+	public static final String FAMILY = "com.lassitercg.faces.components";
+	public static final String COMPONENTTYPE = "com.lassitercg.faces.components.column";
 
 	/**
 	 * Properties that are tracked by state saving.

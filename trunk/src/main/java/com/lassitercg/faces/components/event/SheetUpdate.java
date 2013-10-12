@@ -1,4 +1,4 @@
-package com.lcg.faces.components.event;
+package com.lassitercg.faces.components.event;
 
 import java.io.Serializable;
 

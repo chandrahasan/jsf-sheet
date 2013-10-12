@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.lcg.faces.components.sheet;
+package com.lassitercg.faces.components.sheet;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -60,8 +60,8 @@ import org.primefaces.model.BeanPropertyComparator;
 import org.primefaces.model.SortOrder;
 import org.primefaces.util.ComponentUtils;
 
-import com.lcg.faces.components.event.SheetUpdate;
-import com.lcg.faces.components.util.VarBuilder;
+import com.lassitercg.faces.components.event.SheetUpdate;
+import com.lassitercg.faces.components.util.VarBuilder;
 
 /**
  * Spreadsheet component wrappering the Handsontable jQuery UI component.
@@ -77,9 +77,9 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 
 	public static final String EVENT_CELL_SELECT = "cellSelect";
 	public static final String EVENT_CHANGE = "change";
-	public static final String FAMILY = "com.lcg.faces.components";
-	public static final String RENDERERTYPE = "com.lcg.faces.components.sheet";
-	public static final String COMPONENTTYPE = "com.lcg.faces.components.sheet";
+	public static final String FAMILY = "com.lassitercg.faces.components";
+	public static final String RENDERERTYPE = "com.lassitercg.faces.components.sheet";
+	public static final String COMPONENTTYPE = "com.lassitercg.faces.components.sheet";
 	public static final String PARTIAL_SOURCE_PARAM = "javax.faces.source";
 	public static final String PARTIAL_BEHAVIOR_EVENT_PARAM = "javax.faces.behavior.event";
 
