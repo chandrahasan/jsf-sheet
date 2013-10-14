@@ -6,6 +6,5 @@
 
 	<display-name>JSF Sheet Component</display-name> 
 	<name>jsfsheet</name>
-
 	<distributable />	
 </web-fragment>
