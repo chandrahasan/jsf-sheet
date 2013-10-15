@@ -1,23 +1,15 @@
-At this time, we do not have a home for our maven project. So for now, you can get started by downloading the source and building the project.
-
-
-= Building from Source =
+The dependency is now available in Maven Central and may be added to your project with the following dependency:
 
 {{{
-svn checkout https://jsf-sheet.googlecode.com/svn/trunk/ jsf-sheet 
-cd jsf-sheet
-mvn clean install
-}}}
-
-Once the package is installed, you can add the dependency to your maven pom.xml:
-
-{{{
-<dependency>  
-    <groupId>com.lassitercg</groupId>  
-    <artifactId>jsf-sheet</artifactId>  
-    <version>1.0-SNAPSHOT</version>  
+<dependency>
+    <groupId>com.lassitercg</groupId>
+    <artifactId>jsf-sheet</artifactId>
+    <version>1.0</version>
+    <scope>compile</scope>
 </dependency>
 }}}
+
+In addition to this dependency, you must add the latest Primefaces 4.0 dependency.
 
 = Using the Component =
 To use the component, add the following namespace to your .xhtml page:
@@ -68,3 +60,13 @@ The component can then be used in your page like so:
 = Demo =
 A showcase of the component can be found here:
 [http://server.brainhemorage.com/jsfdemo/demo.jsf]
+
+
+= Building from Source =
+To build from source:
+
+{{{
+svn checkout https://jsf-sheet.googlecode.com/svn/trunk/ jsf-sheet 
+cd jsf-sheet
+mvn clean install
+}}}
