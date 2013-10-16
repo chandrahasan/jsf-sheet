@@ -1,3 +1,5 @@
+= Download =
+
 The dependency is now available in Maven Central and may be added to your project with the following dependency:
 
 {{{
