@@ -1,0 +1,5 @@
+#summary Release Notes
+
+= Release 1.1 =
+
+[Issue 3] Added missing faces-config.xml to META-INF.
