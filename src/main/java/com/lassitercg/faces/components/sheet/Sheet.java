@@ -580,6 +580,8 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 	public void reset() {
 		resetSubmitted();
 		resetSort();
+		localValues.clear();
+		getBadUpdates().clear();
 		for (Column c : getColumns())
 			c.setFilterValue(null);
 	}
