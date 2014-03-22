@@ -102,6 +102,12 @@
 			<type>java.lang.String</type>
 		</attribute>
 		<attribute>
+			<description><![CDATA[An el expression resolving to a unique key value for each row.  Required.]]></description>
+			<name>rowKey</name>
+			<required>true</required>
+			<type>java.lang.Object</type>
+		</attribute>		
+		<attribute>
 			<description><![CDATA[The style class to apply each row.]]></description>
 			<name>rowStyleClass</name>
 			<required>false</required>

@@ -179,6 +179,11 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 		currentColClass,
 
 		/**
+		 * The row key, used to unqiuely identify each row for update operations
+		 */
+		rowKey,
+
+		/**
 		 * The current sortBy value expression
 		 */
 		sortBy,
@@ -266,6 +271,11 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 	 * decode. Saved in the component state.
 	 */
 	private Map<Integer, Integer> columnMapping;
+
+	/**
+	 * Map by row keys for values found in list
+	 */
+	private Map<Object, RowMap> rowMap;
 
 	/*
 	 * (non-Javadoc)
@@ -593,8 +603,10 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 	 * @param col
 	 * @param value
 	 */
-	public void setSubmittedValue(int row, int col, String value) {
-		submittedValues.put(new RowColIndex(row, col), value);
+	public void setSubmittedValue(FacesContext context, int row, int col, String value) {
+		// need to find row key
+		this.setRowIndex(context, row);
+		submittedValues.put(new RowColIndex(this.getRowKeyValue(context), col), value);
 	}
 
 	/**
@@ -604,30 +616,30 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 	 * @param col
 	 * @return
 	 */
-	public String getSubmittedValue(int row, int col) {
-		return submittedValues.get(new RowColIndex(row, col));
+	public String getSubmittedValue(Object rowKey, int col) {
+		return submittedValues.get(new RowColIndex(rowKey, col));
 	}
 
 	/**
 	 * Updates a local value.
 	 * <p>
-	 * @param row
+	 * @param rowKey
 	 * @param col
 	 * @param value
 	 */
-	public void setLocalValue(int row, int col, Object value) {
-		localValues.put(new RowColIndex(row, col), value);
+	public void setLocalValue(Object rowKey, int col, Object value) {
+		localValues.put(new RowColIndex(rowKey, col), value);
 	}
 
 	/**
-	 * Retrieves the submitted value for the row and col.
+	 * Retrieves the submitted value for the rowKey and col.
 	 * <p>
 	 * @param row
 	 * @param col
 	 * @return
 	 */
-	public Object getLocalValue(int row, int col) {
-		return localValues.get(new RowColIndex(row, col));
+	public Object getLocalValue(Object rowKey, int col) {
+		return localValues.get(new RowColIndex(rowKey, col));
 	}
 
 	/**
@@ -674,18 +686,19 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 	 * exists, that is returned, otherwise the actual value is return.
 	 * <p>
 	 * @param context
-	 * @param row
+	 * @param rowKey
 	 * @param col
 	 * @return
 	 */
-	public Object getValueForCell(FacesContext context, int row, int col) {
+	public Object getValueForCell(FacesContext context, Object rowKey, int col) {
 		// if we have a local value, use it
 		// note: can't check for null, as null may be the submitted value
-		RowColIndex index = new RowColIndex(row, col);
+		RowColIndex index = new RowColIndex(rowKey, col);
 		if (localValues.containsKey(index))
 			return localValues.get(index);
 
-		setRowIndex(context, row);
+		RowMap map = rowMap.get(rowKey);
+		setRowIndex(context, map.sortedIndex);
 		final Column column = getColumns().get(col);
 		return column.getValueExpression("value").getValue(context.getELContext());
 	}
@@ -695,19 +708,19 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 	 * converters to convert the value.
 	 * <p>
 	 * @param context
-	 * @param row
+	 * @param rowKey
 	 * @param col
 	 * @return
 	 */
-	public String getRenderValueForCell(FacesContext context, int row, int col) {
+	public String getRenderValueForCell(FacesContext context, Object rowKey, int col) {
 
 		// if we have a submitted value still, use it
 		// note: can't check for null, as null may be the submitted value
-		RowColIndex index = new RowColIndex(row, col);
+		RowColIndex index = new RowColIndex(rowKey, col);
 		if (submittedValues.containsKey(index))
 			return submittedValues.get(index);
 
-		Object value = getValueForCell(context, row, col);
+		Object value = getValueForCell(context, rowKey, col);
 		if (value == null)
 			return null;
 
@@ -928,11 +941,13 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 	}
 
 	/**
-	 * Sorts the data
+	 * Sorts and filters the data
 	 */
 	@SuppressWarnings("unchecked")
 	public void sortAndFilter() {
 		sortedList = new ArrayList<Object>();
+		rowMap = new HashMap<Object, RowMap>();
+
 		Collection<?> values = (Collection<?>) getValue();
 		if (values == null || values.isEmpty())
 			return;
@@ -944,10 +959,11 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 				break;
 			}
 
+		FacesContext context = FacesContext.getCurrentInstance();
+		Map<String, Object> requestMap = context.getExternalContext().getRequestMap();
+
 		if (filters) {
 			// iterate and add those matching the filters
-			FacesContext context = FacesContext.getCurrentInstance();
-			Map<String, Object> requestMap = context.getExternalContext().getRequestMap();
 			String var = getVar();
 			for (Object obj : values) {
 				requestMap.put(var, obj);
@@ -962,10 +978,49 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 			sortedList.addAll(values);
 
 		ValueExpression veSortBy = this.getValueExpression(PropertyKeys.sortBy.name());
-		if (veSortBy == null)
-			return;
+		if (veSortBy != null)
+			Collections.sort(sortedList, new BeanPropertyComparator(veSortBy, getVar(), convertSortOrder(), null));
 
-		Collections.sort(sortedList, new BeanPropertyComparator(veSortBy, getVar(), convertSortOrder(), null));
+		reMapRows();
+	}
+
+	/**
+	 * Remaps the row keys to the sorted and filtered list.
+	 */
+	protected void reMapRows() {
+		FacesContext context = FacesContext.getCurrentInstance();
+		Map<String, Object> requestMap = context.getExternalContext().getRequestMap();
+
+		for (int i = 0; i < sortedList.size(); i++) {
+			Object obj = sortedList.get(i);
+			String var = getVar();
+			requestMap.put(var, obj);
+			try {
+				RowMap map = new RowMap();
+				map.sortedIndex = i;
+				map.value = obj;
+				rowMap.put(getRowKeyValue(context), map);
+			} finally {
+				requestMap.remove(var);
+			}
+		}
+	}
+
+	/**
+	 * Gets the rowKey for the current row
+	 * <p>
+	 * @param context
+	 *            the faces context
+	 * @return a row key value or null if the expression is not set
+	 */
+	protected Object getRowKeyValue(FacesContext context) {
+		ValueExpression veRowKey = getValueExpression(PropertyKeys.rowKey.name());
+		if (veRowKey == null)
+			throw new RuntimeException("RowKey required on sheet!");
+		Object value = veRowKey.getValue(context.getELContext());
+		if (value == null)
+			throw new RuntimeException("RowKey must resolve to non-null valkue for updates to work properly");
+		return value;
 	}
 
 	/**
@@ -1118,10 +1173,10 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 			final Entry<RowColIndex, String> entry = entries.next();
 			final Column column = getColumns().get(entry.getKey().colIndex);
 			final String newValue = entry.getValue();
-			final int row = entry.getKey().getRowIndex();
+			final Object rowKey = entry.getKey().getRowKey();
 			final int col = entry.getKey().getColIndex();
-
-			this.setRowIndex(context, row);
+			final RowMap map = rowMap.get(rowKey);
+			this.setRowIndex(context, map.sortedIndex);
 
 			// attempt to convert new value from string to correct object type
 			// based on column converter. Use PF util as helper
@@ -1144,13 +1199,14 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 					context.addMessage(this.getClientId(context), message);
 
 					String messageText = message.getDetail();
-					this.getBadUpdates().add(new BadUpdate(row, col, column, newValue, messageText));
+					this.getBadUpdates()
+							.add(new BadUpdate(getRowKeyValue(context), col, column, newValue, messageText));
 					continue;
 				}
 			// value is fine, no further validations (again, not to be confused
 			// with validators. until we have a "required" or something like
 			// that, nothing else to do).
-			setLocalValue(row, col, newValueObj);
+			setLocalValue(rowKey, col, newValueObj);
 
 			// process validators on column
 			column.setValue(newValueObj);
@@ -1169,8 +1225,10 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 
 		if (hadBadUpdates || newBadUpdates) {
 			// update the bad data var if partial request
-			if (context.getPartialViewContext().isPartialRequest())
+			if (context.getPartialViewContext().isPartialRequest()) {
+				this.sortAndFilter();
 				this.renderBadUpdateScript(context);
+			}
 		}
 
 		if (newBadUpdates && errorMessage != null) {
@@ -1191,31 +1249,34 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 	 */
 	@Override
 	public void updateModel(FacesContext context) {
-		final List<Object> values = this.getSortedValues();
 		Iterator<Entry<RowColIndex, Object>> entries = localValues.entrySet().iterator();
 		// Keep track of the dirtied rows for ajax callbacks so we can send
 		// updates on what was touched
-		HashSet<Integer> dirtyRows = new HashSet<Integer>();
+		HashSet<Object> dirtyRows = new HashSet<Object>();
 		while (entries.hasNext()) {
 			final Entry<RowColIndex, Object> entry = entries.next();
 
 			final Object newValue = entry.getValue();
-			final int row = entry.getKey().getRowIndex();
+			final Object rowKey = entry.getKey().getRowKey();
 			final int col = entry.getKey().getColIndex();
 			final Column column = getColumns().get(col);
+			final RowMap map = rowMap.get(rowKey);
+			this.setRowIndex(context, map.sortedIndex);
 
-			this.setRowIndex(context, row);
+			System.out.println("Local key=" + rowKey + " and sortedRow is " + map.sortedIndex);
 
 			ValueExpression ve = column.getValueExpression(PropertyKeys.value.name());
 			ELContext elContext = context.getELContext();
 			Object oldValue = ve.getValue(elContext);
 			ve.setValue(elContext, newValue);
 			entries.remove();
-			appendUpdateEvent(row, col, values.get(row), oldValue, newValue);
-			dirtyRows.add(row);
+			appendUpdateEvent(map.sortedIndex, col, map.value, oldValue, newValue);
+			dirtyRows.add(rowKey);
 		}
 		setLocalValueSet(false);
 		setRowIndex(context, -1);
+
+		this.sortAndFilter();
 
 		if (context.getPartialViewContext().isPartialRequest())
 			this.renderRowUpdateScript(context, dirtyRows);
@@ -1226,13 +1287,14 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 	 */
 	@Override
 	public Object saveState(FacesContext context) {
-		Object values[] = new Object[6];
+		Object values[] = new Object[7];
 		values[0] = super.saveState(context);
 		values[1] = submittedValues;
 		values[2] = localValues;
 		values[3] = badUpdates;
 		values[4] = columnMapping;
 		values[5] = sortedList;
+		values[6] = rowMap;
 
 		return values;
 	}
@@ -1253,6 +1315,7 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 		Object restoredBadUpdates = values[3];
 		Object restoredColMappings = values[4];
 		Object restoredSortedList = values[5];
+		Object restoredRowMap = values[6];
 
 		if (restoredSubmittedValues == null)
 			submittedValues.clear();
@@ -1278,6 +1341,11 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 			sortedList = null;
 		else
 			sortedList = (List<Object>) restoredSortedList;
+
+		if (restoredRowMap == null)
+			rowMap = null;
+		else
+			rowMap = (Map<Object, RowMap>) restoredRowMap;
 	}
 
 	/**
@@ -1479,9 +1547,11 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 	public String getBadDataValue() {
 		VarBuilder vb = new VarBuilder(null, true);
 		for (BadUpdate badUpdate : getBadUpdates()) {
-			final int row = badUpdate.getBadRowIndex();
+			final Object rowKey = badUpdate.getBadRowKey();
 			final int col = getRenderIndexFromRealIdx(badUpdate.getBadColIndex());
-			vb.appendRowColProperty(row, col, badUpdate.getBadMessage().replace("'", "&apos;"), true);
+			RowMap map = rowMap.get(rowKey);
+			System.out.println("RowMap is " + map.sortedIndex + " for key " + rowKey);
+			vb.appendRowColProperty(map.sortedIndex, col, badUpdate.getBadMessage().replace("'", "&apos;"), true);
 		}
 		return vb.closeVar().toString();
 	}
@@ -1495,12 +1565,13 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 	 * @param dirtyRows
 	 *            the set of dirty rows
 	 */
-	protected void renderRowUpdateScript(FacesContext context, Set<Integer> dirtyRows) {
+	protected void renderRowUpdateScript(FacesContext context, Set<Object> dirtyRows) {
 		String jsVar = this.resolveWidgetVar();
 		StringBuilder eval = new StringBuilder();
 
-		for (Integer row : dirtyRows) {
-			setRowIndex(context, row);
+		for (Object rowKey : dirtyRows) {
+			RowMap map = this.rowMap.get(rowKey);
+			setRowIndex(context, map.sortedIndex);
 			// data is array of array of data
 			VarBuilder vbRow = new VarBuilder(null, false);
 			for (int col = 0; col < getColumns().size(); col++) {
@@ -1509,12 +1580,12 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 					continue;
 
 				// render data value
-				String value = getRenderValueForCell(context, rowIndex, col);
+				String value = getRenderValueForCell(context, rowKey, col);
 				vbRow.appendArrayValue(value, true);
 			}
 			eval.append(jsVar);
 			eval.append(".cfg.data[");
-			eval.append(Integer.toString(row));
+			eval.append(Integer.toString(map.sortedIndex));
 			eval.append("]=");
 			eval.append(vbRow.closeVar().toString());
 			eval.append(";");
@@ -1572,7 +1643,7 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 
 		private static final long serialVersionUID = 1L;
 
-		private final Integer rowIndex;
+		private final Object rowKey;
 		private final Integer colIndex;
 
 		/**
@@ -1584,8 +1655,8 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 		 * @param col
 		 *            the column respresented by this index
 		 */
-		public RowColIndex(Integer row, Integer col) {
-			this.rowIndex = row;
+		public RowColIndex(Object rowKey, Integer col) {
+			this.rowKey = rowKey;
 			this.colIndex = col;
 		}
 
@@ -1599,7 +1670,7 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 			if (!(other instanceof RowColIndex))
 				return false;
 			RowColIndex castOther = (RowColIndex) other;
-			return new EqualsBuilder().append(rowIndex, castOther.rowIndex).append(colIndex, castOther.colIndex)
+			return new EqualsBuilder().append(rowKey, castOther.rowKey).append(colIndex, castOther.colIndex)
 					.isEquals();
 		}
 
@@ -1610,7 +1681,7 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 		 */
 		@Override
 		public int hashCode() {
-			return new HashCodeBuilder().append(rowIndex).append(colIndex).toHashCode();
+			return new HashCodeBuilder().append(rowKey).append(colIndex).toHashCode();
 		}
 
 		/**
@@ -1618,8 +1689,8 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 		 * <p>
 		 * @return the rowIndex
 		 */
-		public Integer getRowIndex() {
-			return rowIndex;
+		public Object getRowKey() {
+			return rowKey;
 		}
 
 		/**
@@ -1633,4 +1704,12 @@ public class Sheet extends UIInput implements ClientBehaviorHolder, EditableValu
 
 	}
 
+	/*
+	 * Private class used to map a row key to its object and sorted row index
+	 */
+	private class RowMap implements Serializable {
+		private static final long serialVersionUID = 1L;
+		Object value;
+		int sortedIndex;
+	}
 }

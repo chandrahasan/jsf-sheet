@@ -16,7 +16,7 @@ public class BadUpdate implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private int badRowIndex;
+	private Object badRowKey;
 
 	private int badColIndex;
 
@@ -33,7 +33,7 @@ public class BadUpdate implements Serializable {
 	 */
 	@Override
 	public String toString() {
-		return new ToStringBuilder(this).append("badRowIndex", badRowIndex).append("badColIndex", badColIndex)
+		return new ToStringBuilder(this).append("badRowKey", badRowKey).append("badColIndex", badColIndex)
 				.append("badColumn", badColumn).append("badValue", badValue)
 				.append("badMessage", badMessage).toString();
 	}
@@ -48,7 +48,7 @@ public class BadUpdate implements Serializable {
 		if (!(other instanceof BadUpdate))
 			return false;
 		BadUpdate castOther = (BadUpdate) other;
-		return new EqualsBuilder().append(badRowIndex, castOther.badRowIndex)
+		return new EqualsBuilder().append(badRowKey, castOther.badRowKey)
 				.append(badColIndex, castOther.badColIndex).isEquals();
 	}
 
@@ -62,7 +62,7 @@ public class BadUpdate implements Serializable {
 	@Override
 	public int hashCode() {
 		if (hashCode == 0) {
-			hashCode = new HashCodeBuilder().append(badRowIndex).append(badColIndex).toHashCode();
+			hashCode = new HashCodeBuilder().append(badRowKey).append(badColIndex).toHashCode();
 		}
 		return hashCode;
 	}
@@ -71,9 +71,9 @@ public class BadUpdate implements Serializable {
 		super();
 	}
 
-	public BadUpdate(int badRowIndex, int badColIndex, Column badColumn, Object badValue,
+	public BadUpdate(Object badRowKey, int badColIndex, Column badColumn, Object badValue,
 			String badMessage) {
-		this.badRowIndex = badRowIndex;
+		this.badRowKey = badRowKey;
 		this.badColIndex = badColIndex;
 		this.badColumn = badColumn;
 		this.badValue = badValue;
@@ -81,22 +81,22 @@ public class BadUpdate implements Serializable {
 	}
 
 	/**
-	 * The badRowIndex value.
+	 * The bad RowKey value.
 	 * <p>
 	 * @return the badRowIndex
 	 */
-	public int getBadRowIndex() {
-		return badRowIndex;
+	public Object getBadRowKey() {
+		return badRowKey;
 	}
 
 	/**
-	 * Updates the badRowIndex value.
+	 * Updates the badRowKey value.
 	 * <p>
-	 * @param badRowIndex
-	 *            the badRowIndex to set
+	 * @param badRowKey
+	 *            the bad RowKey to set
 	 */
-	public void setBadRowIndex(int badRowIndex) {
-		this.badRowIndex = badRowIndex;
+	public void setBadRowKey(Object badRowKey) {
+		this.badRowKey = badRowKey;
 	}
 
 	/**
