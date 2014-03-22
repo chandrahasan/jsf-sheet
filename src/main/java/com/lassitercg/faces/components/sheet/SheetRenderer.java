@@ -336,7 +336,7 @@ public class SheetRenderer extends Renderer {
 				continue;
 
 			// render data value
-			String value = sheet.getRenderValueForCell(context, rowIndex, col);
+			String value = sheet.getRenderValueForCell(context, sheet.getRowKeyValue(context), col);
 			vbRow.appendArrayValue(value, true);
 
 			// custom style
@@ -756,7 +756,7 @@ public class SheetRenderer extends Renderer {
 				final int row = update.getInt(0);
 				final int col = sheet.getMappedColumn(update.getInt(1));
 				final String newValue = update.getString(3);
-				sheet.setSubmittedValue(row, col, newValue);
+				sheet.setSubmittedValue(context, row, col, newValue);
 			}
 		} catch (JSONException e) {
 			LOG.error("Failed parsing Ajax JSON message for cell change event: {}", e.getMessage(), e);

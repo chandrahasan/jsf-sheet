@@ -427,8 +427,9 @@ public class Column extends UIInput implements ClientBehaviorHolder {
 						return;
 					context.addMessage(getClientId(context), message);
 					sheet.getBadUpdates().add(
-							new BadUpdate(sheet.getRowIndex(), sheet.getColumns().indexOf(this), this, value, message
-									.getDetail()));
+							new BadUpdate(sheet.getRowKeyValue(context), sheet.getColumns().indexOf(this), this, value,
+									message
+											.getDetail()));
 
 				}
 			}
@@ -465,8 +466,9 @@ public class Column extends UIInput implements ClientBehaviorHolder {
 			Sheet sheet = getSheet();
 			if (sheet != null)
 				sheet.getBadUpdates().add(
-						new BadUpdate(sheet.getRowIndex(), sheet.getColumns().indexOf(this), this, newValue, message
-								.getDetail()));
+						new BadUpdate(sheet.getRowKeyValue(context), sheet.getColumns().indexOf(this), this, newValue,
+								message
+										.getDetail()));
 			setValid(false);
 			return false;
 		}
